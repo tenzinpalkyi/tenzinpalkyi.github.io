@@ -10,7 +10,7 @@ description: ''
 
 # Python and R Working Together
 
-Reticulate is a really cool function in R studio that allows us to use two coding languages at the same time! In this blog post, we'll see how R and python can be used simultaneously for different functions. 
+Reticulate is a really cool function that allows us to use two coding languages at the same time! In this blog post, we'll see how R and python can be used simultaneously for different functions.
 
 ```{R}
 library(reticulate)
@@ -27,26 +27,28 @@ df= sns.load_dataset('iris')
 
 ![](/post/2020-12-09-reticulate-in-python_files/iris-machinelearning.png){width=100% height=50%}
 
-However, if I only like to make graphs using ggplot in R, then I can save the iris dataset (abbreviated to df) into R. To do this, I use the code py$"dataframename" and save that as the name I want in R. Then, I can use ggplot to plot the variables of petal length and petal width!
+
+
+However, if I only like to make graphs using ggplot in R, then I can save the iris dataset (abbreviated to df) into R. To do this, I use the code py$"dataframename" and save that as the name I want in R. Then, I can use ggplot like I would in R studio to plot the variables of petal length and petal width. There seems to be a positive, linear relationship between these two variables, and the three species of irises are quite distinct from each other!
 ```{R}
 df<-py$df
 
-plot1<-ggplot(df) + geom_point(aes(petal_length, petal_width))
+plot1<-ggplot(df) + geom_point(aes(petal_length, petal_width, color= species))
 plot1 + ggtitle("Iris Petal Length vs. Petal Width") + 
     xlab("Petal Length") + 
     ylab("Petal Width")
 ```
 
-We can even do it the other way, starting with a dataset imported in R. I'll import the ChickWeight dataset from R: 
+We can even do it the other way around, starting with a dataset imported in R. I'll import the ChickWeight dataset from R: 
 
 ```{R}
 ChickWeight <- as.data.frame(ChickWeight)
 
 ```
 
-A really simple piece of information we can get in python is the shape of this dataset. By using "shape", we see that there are 578 rows and 4 variables (columns)!
+A really simple piece of information we can get in python is the shape of this dataset. To call the dataset from R into python, all we need to do is add "r." in front of the dataset we're interested in. With the "shape" function, we see that there are 578 rows and 4 variables (columns). We can also find descriptive data about the weight variable, such as the mean, min, max, and standard deviation!
 ```{python}
 r.ChickWeight.shape
-
+r.ChickWeight.weight.describe()
 ```
 ![](/post/2020-12-09-reticulate-in-python_files/post-1_image0-25.jpg){width=100% height=50%}

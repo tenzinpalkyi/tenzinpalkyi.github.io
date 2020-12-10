@@ -74,7 +74,7 @@
 
 <div id="python-and-r-working-together" class="section level1">
 <h1>Python and R Working Together</h1>
-<p>Reticulate is a really cool function in R studio that allows us to use two coding languages at the same time! In this blog post, we'll see how R and python can be used simultaneously for different functions.</p>
+<p>Reticulate is a really cool function that allows us to use two coding languages at the same time! In this blog post, we'll see how R and python can be used simultaneously for different functions.</p>
 <pre class="r"><code>library(reticulate)
 library(ggplot2)
 library(ggExtra)</code></pre>
@@ -85,19 +85,29 @@ df= sns.load_dataset(&#39;iris&#39;)</code></pre>
 <img src="../../../../../post/2020-12-09-reticulate-in-python_files/iris-machinelearning.png" style="width:100.0%" style="height:50.0%" />
 
 </div>
-<p>However, if I only like to make graphs using ggplot in R, then I can save the iris dataset (abbreviated to df) into R. To do this, I use the code py$&quot;dataframename&quot; and save that as the name I want in R. Then, I can use ggplot to plot the variables of petal length and petal width!</p>
+<p>However, if I only like to make graphs using ggplot in R, then I can save the iris dataset (abbreviated to df) into R. To do this, I use the code py$&quot;dataframename&quot; and save that as the name I want in R. Then, I can use ggplot like I would in R studio to plot the variables of petal length and petal width. There seems to be a positive, linear relationship between these two variables, and the three species of irises are quite distinct from each other!</p>
 <pre class="r"><code>df&lt;-py$df
 
-plot1&lt;-ggplot(df) + geom_point(aes(petal_length, petal_width))
+plot1&lt;-ggplot(df) + geom_point(aes(petal_length, petal_width, color= species))
 plot1 + ggtitle(&quot;Iris Petal Length vs. Petal Width&quot;) + 
     xlab(&quot;Petal Length&quot;) + 
     ylab(&quot;Petal Width&quot;)</code></pre>
 <p><img src="../../../../../post/2020-12-09-reticulate-in-python_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
-<p>We can even do it the other way, starting with a dataset imported in R. I'll import the ChickWeight dataset from R:</p>
+<p>We can even do it the other way around, starting with a dataset imported in R. I'll import the ChickWeight dataset from R:</p>
 <pre class="r"><code>ChickWeight &lt;- as.data.frame(ChickWeight)</code></pre>
-<p>A really simple piece of information we can get in python is the shape of this dataset. By using &quot;shape&quot;, we see that there are 578 rows and 4 variables (columns)!</p>
+<p>A really simple piece of information we can get in python is the shape of this dataset. To call the dataset from R into python, all we need to do is add &quot;r.&quot; in front of the dataset we're interested in. With the &quot;shape&quot; function, we see that there are 578 rows and 4 variables (columns). We can also find descriptive data about the weight variable, such as the mean, min, max, and standard deviation!</p>
 <pre class="python"><code>r.ChickWeight.shape</code></pre>
 <pre><code>## (578, 4)</code></pre>
+<pre class="python"><code>r.ChickWeight.weight.describe()</code></pre>
+<pre><code>## count    578.000000
+## mean     121.818339
+## std       71.071960
+## min       35.000000
+## 25%       63.000000
+## 50%      103.000000
+## 75%      163.750000
+## max      373.000000
+## Name: weight, dtype: float64</code></pre>
 <div class="figure">
 <img src="../../../../../post/2020-12-09-reticulate-in-python_files/post-1_image0-25.jpg" style="width:100.0%" style="height:50.0%" />
 

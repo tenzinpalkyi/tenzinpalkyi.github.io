@@ -33,7 +33,7 @@ library(dplyr) library(fivethirtyeight) library(tidyverse) college_grads &amp;lt
       <pubDate>Wed, 09 Dec 2020 00:00:00 +0000</pubDate>
       
       <guid>/post/2020/12/09/reticulate-in-python/</guid>
-      <description>Python and R Working Together Reticulate is a really cool function in R studio that allows us to use two coding languages at the same time! In this blog post, we&#39;ll see how R and python can be used simultaneously for different functions.
+      <description>Python and R Working Together Reticulate is a really cool function that allows us to use two coding languages at the same time! In this blog post, we&#39;ll see how R and python can be used simultaneously for different functions.
 library(reticulate) library(ggplot2) library(ggExtra) For example, I have the iris dataset imported into python here:
 import seaborn as sns df= sns.load_dataset(&amp;#39;iris&amp;#39;)  However, if I only like to make graphs using ggplot in R, then I can save the iris dataset (abbreviated to df) into R.</description>
     </item>
