@@ -7,6 +7,19 @@ categories: []
 tags: []
 description: ''
 ---
+# R Studio and Python
+
+Content of the post
+
+```{R}
+quakes<- quakes
+```
+
+```{python}
+r.quakes.mag.mean()
+
+```
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(collapse = TRUE)
 ```
