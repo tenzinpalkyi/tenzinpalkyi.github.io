@@ -81,6 +81,10 @@ library(ggExtra)</code></pre>
 <p>For example, I have the iris dataset imported into python here:</p>
 <pre class="python"><code>import seaborn as sns
 df= sns.load_dataset(&#39;iris&#39;)</code></pre>
+<div class="figure">
+<img src="../../../../../post/2020-12-09-reticulate-in-python_files/iris-machinelearning.png" style="width:100.0%" style="height:50.0%" />
+
+</div>
 <p>However, if I only like to make graphs using ggplot in R, then I can save the iris dataset (abbreviated to df) into R. To do this, I use the code py$&quot;dataframename&quot; and save that as the name I want in R. Then, I can use ggplot to plot the variables of petal length and petal width!</p>
 <pre class="r"><code>df&lt;-py$df
 
@@ -94,6 +98,10 @@ plot1 + ggtitle(&quot;Iris Petal Length vs. Petal Width&quot;) +
 <p>A really simple piece of information we can get in python is the shape of this dataset. By using &quot;shape&quot;, we see that there are 578 rows and 4 variables (columns)!</p>
 <pre class="python"><code>r.ChickWeight.shape</code></pre>
 <pre><code>## (578, 4)</code></pre>
+<div class="figure">
+<img src="../../../../../post/2020-12-09-reticulate-in-python_files/post-1_image0-25.jpg" style="width:100.0%" style="height:50.0%" />
+
+</div>
 </div>
 
             

@@ -25,6 +25,8 @@ df= sns.load_dataset('iris')
 
 ```
 
+![](/post/2020-12-09-reticulate-in-python_files/iris-machinelearning.png){width=100% height=50%}
+
 However, if I only like to make graphs using ggplot in R, then I can save the iris dataset (abbreviated to df) into R. To do this, I use the code py$"dataframename" and save that as the name I want in R. Then, I can use ggplot to plot the variables of petal length and petal width!
 ```{R}
 df<-py$df
@@ -47,4 +49,4 @@ A really simple piece of information we can get in python is the shape of this d
 r.ChickWeight.shape
 
 ```
-
+![](/post/2020-12-09-reticulate-in-python_files/post-1_image0-25.jpg){width=100% height=50%}
