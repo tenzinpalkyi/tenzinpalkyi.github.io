@@ -33,7 +33,6 @@ plot1<-ggplot(df) + geom_point(aes(petal_length, petal_width))
 plot1 + ggtitle("Iris Petal Length vs. Petal Width") + 
     xlab("Petal Length") + 
     ylab("Petal Width")
-?iris
 ```
 
 We can even do it the other way, starting with a dataset imported in R. I'll import the ChickWeight dataset from R: 
