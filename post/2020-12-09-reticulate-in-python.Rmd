@@ -1,0 +1,46 @@
+---
+title: Reticulate!
+author: Tenzin Palkyi
+date: '2020-12-09'
+slug: reticulate-in-python
+categories: []
+tags: []
+description: ''
+---
+
+# Python and R Working Together
+
+Reticulate is a really cool function in R studio that allows us to use two coding languages at the same time! In this blog post, we'll see how R and python can be used simultaneously for different functions. 
+
+```{R}
+library(reticulate)
+library(ggplot2)
+```
+
+For example, I have the iris dataset imported into python here:
+```{python}
+import seaborn as sns
+df= sns.load_dataset('iris')
+
+```
+
+However, if I only like to make graphs using ggplot in R, then I can save the iris dataset (abbreviated to df) into R. To do this, I use the code py$"dataframename" and save that as the nema I want in R. Then, I can use ggplot to plot the variables of petal length and petal width!
+```{R}
+df<-py$df
+
+ggplot(df) + geom_point(aes(petal_length, petal_width))
+
+```
+
+
+```{R}
+ChickWeight <- as.data.frame(ChickWeight)
+
+```
+
+```{python}
+r.ChickWeight.shape
+
+
+```
+

@@ -28,15 +28,14 @@ library(dplyr) library(fivethirtyeight) library(tidyverse) college_grads &amp;lt
     </item>
     
     <item>
-      <title>Test Post</title>
-      <link>/post/2020/12/09/test-post/</link>
+      <title>Reticulate!</title>
+      <link>/post/2020/12/09/reticulate-in-python/</link>
       <pubDate>Wed, 09 Dec 2020 00:00:00 +0000</pubDate>
       
-      <guid>/post/2020/12/09/test-post/</guid>
-      <description>R Studio and Python Content of the post
-quakes&amp;lt;- quakes r.quakes.mag.mean() ## 4.6204000000000001  R Markdown This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see http://rmarkdown.rstudio.com.
-You can embed an R code chunk like this:
-summary(cars) ## speed dist ## Min. : 4.0 Min. : 2.00 ## 1st Qu.:12.0 1st Qu.</description>
+      <guid>/post/2020/12/09/reticulate-in-python/</guid>
+      <description>Python and R Working Together Reticulate is a really cool function in R studio that allows us to use two coding languages at the same time! In this blog post, we&#39;ll see how R and python can be used simultaneously for different functions.
+library(reticulate) library(ggplot2) For example, I have the iris dataset imported into python here:
+import seaborn as sns df= sns.load_dataset(&amp;#39;iris&amp;#39;) However, if I only like to make graphs using ggplot in R, then I can save the iris dataset (abbreviated to df) into R.</description>
     </item>
     
     <item>

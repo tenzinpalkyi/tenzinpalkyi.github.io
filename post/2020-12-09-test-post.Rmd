@@ -1,5 +1,5 @@
 ---
-title: Test Post
+title: Python Basics!
 author: Tenzin Palkyi
 date: '2020-12-09'
 slug: test-post
@@ -7,7 +7,7 @@ categories: []
 tags: []
 description: ''
 ---
-# R Studio and Python
+# Python 101
 
 Content of the post
 
