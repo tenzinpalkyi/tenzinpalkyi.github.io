@@ -60,7 +60,7 @@
  
 <div class="blog-title">
           <h4>
-         January 1, 0001 
+         December 9, 2020 
             &nbsp;&nbsp;
             
           </h4>
@@ -567,7 +567,7 @@ hist(Fs, prob = T)
 abline(v = obs_F, col = &quot;red&quot;, add = T)</code></pre>
 <p><img src="../../project/project2_files/figure-html/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>mean(Fs &gt; obs_F)</code></pre>
-<pre><code>## [1] 0.0898</code></pre>
+<pre><code>## [1] 0.0848</code></pre>
 <p>For this randomization test, I wanted to do an ANOVA test on whether the &quot;total_quantile&quot; classification (1st, 2nd, 3rd, or 4th quantile) of a major plays any role in the post-graduation unemployment rate. The null hypothesis is that the mean unemployment rates for all the &quot;total_quantile&quot; classifications are equal. The alternative hypothesis would be that there is some difference in the unempployment rate based on &quot;total_quantile&quot;. The observed F statistic was 2.26 and the p value was close to being significant (.083), but did not pass the significance threshold. The p value for the randomization test was approximately the same (.084), but it still doesn't pass the significance threshold. This means that about 8% of the 5000 F statistics generated under the null hypothesis were bigger than our actual F statistic of 2.26. In the histogram, we can see that a majority of the Fs are below the red line (which represents the observed F), but it was not significant enough.</p>
 </div>
 <div id="linear-regresssion-model" class="section level2">
@@ -728,11 +728,11 @@ summary(fit1_i)</code></pre>
 })
 samp_distn %&gt;% t %&gt;% as.data.frame %&gt;% summarize_all(sd)</code></pre>
 <pre><code>##   (Intercept) total_quantile2nd Quantile total_quantile3rd Quantile
-## 1    1958.371                   2415.905                   2337.018
+## 1    1967.104                   2414.691                   2356.578
 ##   total_quantile4th Quantile       pc total_quantile2nd Quantile:pc
-## 1                   2391.121 122.6023                      147.8296
+## 1                    2383.86 124.6827                      150.0765
 ##   total_quantile3rd Quantile:pc total_quantile4th Quantile:pc
-## 1                      141.8411                      142.5643</code></pre>
+## 1                      145.9656                      145.9121</code></pre>
 <p>For the boostrapped SEs, I chose to resample the observations. Compared to the original SEs, there was an overall increase, with the largest increase in the intercept SE, from ~1686 to ~1996. In relation to the robust SEs, there was a slight decrease in all the values.</p>
 </div>
 <div id="logistic-regression-model-predicting-a-binary-variable" class="section level2">

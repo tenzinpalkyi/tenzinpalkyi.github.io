@@ -5,11 +5,12 @@
     <link>/project/</link>
     <description>Recent content in Projects on </description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en-US</language><atom:link href="/project/index.xml" rel="self" type="application/rss+xml" />
+    <language>en-US</language>
+    <lastBuildDate>Wed, 09 Dec 2020 00:00:00 +0000</lastBuildDate><atom:link href="/project/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Project 1: Exploratory Data Analysis</title>
       <link>/project/project1/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <pubDate>Wed, 09 Dec 2020 00:00:00 +0000</pubDate>
       
       <guid>/project/project1/</guid>
       <description>Tenzin Palkyi tp23423
@@ -19,7 +20,7 @@ Data Wrangling and Data Exploration  Introduction The two datasets that I chose 
     <item>
       <title>Project 2: Modeling, Testing, and Predicting</title>
       <link>/project/project2/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <pubDate>Wed, 09 Dec 2020 00:00:00 +0000</pubDate>
       
       <guid>/project/project2/</guid>
       <description>Tenzin Palkyi tp23423
