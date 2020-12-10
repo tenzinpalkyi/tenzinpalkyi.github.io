@@ -1,0 +1,195 @@
+---
+title: 'Project 1: Exploratory Data Analysis'
+author: "SDS348"
+date: ''
+output:
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+  pdf_document:
+    toc: no
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = F, message = F,
+tidy=TRUE, tidy.opts=list(width.cutoff=60), R.options=list(max.print=100))
+```
+
+Tenzin Palkyi tp23423
+
+## Data Wrangling and Data Exploration
+
+##Introduction
+The two datasets that I chose are the college_recent_grads and college_grad_students sets from the fivethirtyeight package in R. The college_recent_grads dataset has information on recent graduates from a total of 173 different college majors with 21 variables. Examples of some of the variables are: how many individuals were in this major; the 25th, 50th, and 75th percentile earnings; the unemployment rate; and the proportion of women who were in this major. The college_grad_students dataset, on the other hand, compared data on both undergraduate and graduate students of the same 173 majors that were listed in the college_recent_grads dataset and has 22 variables. Some unique variables to this college_grad_students were the undergraduate unemployment rate, graduate student unemployment rate, and the proportion of students in the major who were in graduate school. I thought that these two datasets were interesting because it explores the dynamics of various college majors such as the income levels of its graduates, the proportion of students who were in graduate school versus undergratuate, and the total size of each respective major. As someone who has mainly been in the STEM field, I wanted to explore how science majors compare to other majors, like social sciences, engineering, and business. From an initial glance at the data, I would potentially say that there could be a correlation between the proportion of women in a major and the median salary because many engineering majors have higher salaries with relatively low female representation.
+
+## 1. Tidying: Arranging Wide/Long
+
+```{r}
+library(dplyr)
+library(fivethirtyeight)
+library(tidyverse)
+college_grads<-college_recent_grads
+
+college_comp<-college_grad_students
+```
+Because the data was already tidy to begin with, I'm going to be pivoting it in the visualization section (#4) when I make the correlation dataframe.
+
+
+## 2. Joining/Merging
+```{r}
+college_grads %>%full_join(college_comp)
+fullcollege <-college_grads %>% full_join(college_comp)
+glimpse(fullcollege)
+
+```
+The "college_grads" dataset had 173 observations and 21 variables while the "college_comp" dataset had 173 observations and 22 variables. The combined dataset, "fullcollege" has 173 observations and 40 variables. The number of observations remained the same because each observation was the name of a particular major, and both datasets included all the majors. Instead of 43 total variables, there are 40 because 3 variables were shared by both datasets: "major", "major_code", and "major_category".
+I chose to do a full join so that it retained all of the unique variables from both datasets. 
+
+
+## 3. Wrangling
+```{r}
+full_college<-fullcollege %>% mutate(percent_college= college_jobs/employed) %>% mutate(total_quantile= ntile(total,4)) %>%
+  mutate(total_quantile=recode(total_quantile,"1"="1st Quantile","2"="2nd Quantile","3"="3rd Quantile", "4"="4th Quantile")) 
+full_college %>% rename(grad_p25th="grad_p75th", grad_p75th="grad_p25th")
+```
+A new column that I created was the "percent_college" variable. This calculates the proportion of jobs in a major that require a college degree. To do this, I divided the number with job requiring a college degree by the toal number of recent graduates in that major who were employed. I also created another categorical variable titled "total_quantile", and this is meant to categorize each major into quantiles based on the "total" variable, so a major with fewer students will be in the 1st Quantile and a very large major will be in the 4th Quantile.
+
+Additionally, I switched the names of the columns for grad_p25th and grad_p75th because it looked like the values were switched. The original grad_p25th column had values that were consistently above the median values, whereas the grad_p75th column had values that were consistently below the median values.
+
+```{r}
+full_college %>% filter(sharewomen>=0.5, major_category=="Humanities & Liberal Arts") %>% select(major, total, unemployment_rate, median) %>% arrange(desc(total))
+
+full_college %>% filter(total_quantile>=3, major_category=="Arts") %>% select(major, total, percent_college, grad_share) %>% arrange(desc(grad_share))
+
+```
+To explore the dataset a bit more, the first wrangling I did was to filter the data by Humanities & Liberal Arts majors who had at least 50% female proportion. From there, I looked at which of these majors had the most total students, what the median salary was, and the respective unemployment rates. I was able to see that English Language and Literature was the largest major in this category with almost 200,000 students!
+
+The second filtering I did was to look at Art majors who had at or above the 3rd quantile in terms of the size of the majors. From there, I arranged the rows from the majors who had the highest proportion of graduate students, and it turns out that Music seems to be have the highest, with about 45% of students being in graduate school.
+
+```{r}
+fullcollege %>% group_by(major_category) %>%
+  summarize(median_salary=mean(median, na.rm=T), sd_salary=sd(median, na.rm=T), var_salary=var(median, na.rm=T),min_salary=min(median, na.rm=T), max_salary=max(median, na.rm=T),n=n_distinct(median, na.rm=T))%>% arrange(desc(median_salary))
+
+full_college %>% group_by(major_category) %>%
+  summarize(mean_college_jobs=mean(percent_college, na.rm=T), sd_college_jobs=sd(percent_college, na.rm=T),var_college_jobs=var(percent_college, na.rm=T), min_college_jobs=min(percent_college, na.rm=T), max_college_jobs=max(percent_college, na.rm=T)) %>% arrange(desc(mean_college_jobs))
+
+full_college %>% group_by(major_category) %>% summarize(mean_share_women=mean(sharewomen, na.rm=T), sd_share_women=sd(sharewomen, na.rm=T),var_share_women=var(sharewomen, na.rm=T), min_share_women=min(sharewomen, na.rm=T), max_share_women=max(sharewomen, na.rm=T)) %>% arrange(desc(mean_share_women))
+
+full_college %>% group_by(major_category) %>% summarize(mean_total=mean(total, na.rm=T), sd_total=sd(total, na.rm=T), var_total=var(total, na.rm=T), min_total=min(total, na.rm=T), max_total=max(total, na.rm=T)) %>% arrange(desc(mean_total))
+
+full_college %>% group_by(major, major_category, total_quantile) %>% summarize(mean_grad_prop=mean(grad_share, na.rm=T), sd_grad_prop=sd(grad_share, na.rm=T), var_grad_prop=var(grad_share, na.rm=T), min_grad_prop=min(grad_share, na.rm=T), max_grad_prop=max(grad_share, na.rm=T)) %>% arrange(desc(mean_grad_prop))
+
+cormat<-full_college %>% select(5,9:10,15,17,27,29,35,37,39,41) %>% cor(use="pair")
+head(cormat)
+```
+For summary statistics, I grouped all the information by the major_category, and the variables I looked at were: (1) median salary of recent graduates, (2) the proportion of jobs that required a college degree, (3) the proportion of female students in the major category, (4) the total size of the major, and (5) the proportion of students for each major who are in graduate school. Looking at the summary tables, the top median salaries were earned by engineering graduates, with a salary of $57,382 and business graduates are in second with a salary of $43,538. The lowest salaries, on average, seem to be earned by psychology and social work graduates, with $30,100. Education majors have the highest proportion of jobs that require a college degree, with approximately 67% and business majors having the lowest proportion, with about 19%. Health majors and psychology/social work majors have the highest proportion of female students, both having 79% of students being female while engineering has the least female representation of 23.9%. In terms of total students, business majors generally have the largest size, with just over 100,000 students, and agcriculture/natural resource majors have the smallest size, with 8400 students, on average. Additionally, for the proportion of graduate students per major category, "Educational Administration & Supervision" and "School Student Counseling", which are both education majors, have the highest graduate student proportion, with approximately 93% and 90%, respectively; additionally, both of these majors are in the first quantile, signifying a smaller number of students in the majors. 
+
+Lastly, when studying the correlation matrix, there are two relatively strong correlations that I find at first glance. The first one is that that the total amount of students correlates almost perfectly (.996) with the number of people employed, which logically makes sense since the number of people employed should increase as the size of the major increases. The second correlation is between the proportion of female students and the median salary of that major, and this is actually a negative relationship (-0.61). This signifies that, in general, the higher the proportion of women is in a major, the lower that major's median salary is. Most of the other correlations in this matrix are relatively low values (under +/-0.3).
+
+## 4. Visualizing
+```{r}
+cor_fc<- cormat %>% as.data.frame %>% rownames_to_column("var1") %>% pivot_longer(-1, names_to="var2", values_to="correlation") 
+head(cor_fc)
+
+```
+
+```{r}
+cor_fc %>% ggplot(aes(var1, var2, fill=correlation)) +geom_tile() +scale_fill_gradient2(low="red", mid="yellow", high="green") +geom_text(aes(label=round(correlation,2)), color="black", size=4) + xlab("variable 1") +ylab("variable 2") +ggtitle("Correlation Heat Map") + theme(axis.text.x= element_text(size=7, angle=40, hjust=1))
+
+```
+For the correlation heatmap, I only selected 11 numeric variables from the total of 39. This was because many variables are closely related and having all the variables would not be readable in the heatmap. The variables I chose were: (1) unemployment rate of recent graduates, (2) total individuals employed, (3) proportion of students in the major who are women, (4) the percent of jobs in the major that require a college degree, (5) the unemployment rate of college students, (6) the median income for full-time, year-round undergraduate workers, (7) the median earnings of recent graduates who are full-time, year-round employees, (8) the unemployment rate of graduate students, (9) the proportion of students who were at the graduate level of study, (10) the median income for full-time, year-round graduate workers, and (11) the total number of recent graduates who are employed.
+
+
+```{r}
+library(ggExtra)
+plot1<-ggplot(full_college, aes(percent_college,unemployment_rate, color= major_category))+geom_point(size=3)+ scale_x_continuous(breaks=seq(0,1,.1))+ scale_y_continuous(labels=scales::percent)+
+theme(axis.text.x= element_text(size=8, angle=40, hjust=1))
+
+plot1+ ggtitle("Proportion of Jobs that Require a College Degree vs. Unemployment Rate")+ xlab("Proportion of Total Jobs Requiring a College Degree")+ ylab("Unemployment Rate")
+```
+This plot shows the relationship between the proportion of jobs in a major that require a college degree and the unemployment rate for those majors. My initial thought was that there would be a strong negative correlation between the two, assuming that jobs requiring a college degree may have higher stability and, consequently, a lower unemployment rate. In the plot, there does seem to be a weak relationship between the two variables; however, there are also some outliers, such as the engineering major that has over a 15% unemployment rate, even with 60% of jobs requiring a college degree. Generally speaking, the major caetgories that have a higher proportion of jobs that require a college degree are: engineering, education, and computers/mathematics. These majors tend to have unemployment rates under 5-6%. On the other hand, majors that don't have a high proportion of jobs requiring a college degree are: business, industrial arts & consumer services, and social sciences. These majors tend to have unemployment rates closer to 10%. 
+
+
+```{r}
+plot2<-ggplot(full_college, aes(x= major_category, y=median, fill=total_quantile))+ geom_bar(stat="summary", position="dodge")+ scale_y_continuous(breaks=seq(0,70000,10000),labels=scales::dollar)+
+theme(axis.text.x= element_text(size=8, angle=40, hjust=1))+
+scale_fill_manual("legend", values=c("1st Quantile"="Purple","2nd Quantile"="Blue", "3rd Quantile"="Turquoise", "4th Quantile"="Pink"))
+                                     
+                                     
+plot2+ ggtitle("Major Category vs. Median Income")+ xlab("Major Category")+ ylab("Median Income")
+```
+This second plot looks at different major categories, their median incomes, and also differentiates the quantiles within each major category, with 1st Quantile being the smallest majors and 4th Quantile including the largest majors. Looking at the median income, the category that has the highest overall median salary is engineering majors, followed closely by business majors. Looking at the opposite end, at majors with the lowest median salaries, there is Psychology & Social Work and Education. Connecting this data back to the summary tables and correlation heatmap, these trends are expected because Psychology & Social Work has a high proportion of women, and there is a negative relationship between proportion of females and median income of a major. This can also be appplied to Engineering majors, which have a very low proportion of females and the highest salaries. Within each major, if we look at the income relative to the size of the major, for many majors (but not all), the 1st Quantile degrees (purple bars) seem to have the highest salaries within each major. Some examples can be seen within the Arts, Business, and Law & Public Policy majors. This could possibly be explained by the fact that majors which have less people can be more specialized and niche, resulting in higher pay than degrees that have a more general scope of knowledge.
+
+
+## 5. Dimensionality Reduction
+```{r}
+fc_nums<-full_college %>% select_if(is.numeric) %>% scale
+rownames(fc_nums)<-full_college$major
+fc_pca<-princomp(na.omit(fc_nums))
+names(fc_pca)
+```
+The first step in the PCA was to select the numeric data, normalize/scale the data, and then run princomp() on the scaled vales.
+
+```{r}
+summary(fc_pca, loadings=T)
+eigval<-fc_pca$sdev^2
+varprop=round(eigval/sum(eigval), 2)
+ggplot() + geom_bar(aes(y=varprop, x=1:39), stat="identity") + xlab("") + geom_path(aes(y=varprop, x=1:39)) + 
+  geom_text(aes(x=1:39, y=varprop, label=round(varprop, 2)), vjust=1, col="white", size=5) + 
+  scale_y_continuous(breaks=seq(0, .6, .2), labels = scales::percent) + 
+  scale_x_continuous(breaks=1:10, limits=c(.5, 15))
+round(cumsum(eigval)/sum(eigval), 2)
+```
+Next, we can summarize the results. There are 39 principal components; however, by looking at the "Proportion of Variance" and "Cumulative Proportion" rows, the first principal component by itself already accounts for 47% of the variance. I used 80% of variance accounted for as my cutoff for the final number of principal components, and in this case, it included the first 4 principal components. Even in the scree plot, it is obvious that past the 4th or 5th component, the values begin trailing off. 
+
+Looking at PC 1, it is an axis that mainly accounts for the size of the major, with all the values in the correlation being positive. The main variables that contribute to this are: total size, number of men & women, and the number of employees. This makes sense because if there are more people with a particular major, the number of employees will increase as well. PC2 is an axis for income and proportion of women, with there being a negative correlation between share of women and income. The main variables contributing to PC2 are: rank, female proportion in the major, and the average income for individuals with this major. PC3 looks at the proportion of women and how it has a positive relationship with grad student total and a negative correlation with unemployment. Finally, PC4 is an axis that weakly includes how unemployment rates and percent of jobs requiring a college degree inversely relate to each other.
+
+```{r}
+fc_df <-  data.frame(PC1=fc_pca$scores[, 1], PC2=fc_pca$scores[, 2])
+ggplot(fc_df, aes(PC1, PC2)) + geom_point()
+
+```
+
+
+```{r}
+fc_pca$scores[,1:4] %>% as.data.frame %>% top_n(3, Comp.1)
+full_college %>% filter(major%in%c("General Business", "Business Management And Administration", "Psychology"))
+fc_pca$scores[,1:4] %>% as.data.frame %>% top_n(-3, Comp.1)
+full_college %>% filter(major%in%c("Petroleum Engineering", "Metallurgical Engineering", "Naval Architecture And Marine Engineering"))
+
+```
+By selecting the highest and lowest scoring majors on PC1, we can better see what this axis accounts for. Looking at the high end, the highest PC1 values were for General Business, Business Management & Administration, and Psychology. Since PC1 mainly looks at the size of the major, we can see that the total students is very high, with over 200,000 on the business side and almost 400,000 with Psychology majors. Additionally, this also relates to the total number of employees within this major, which have values in the same realm as the total students variable. On the other hand, at the low end, the 3 lowest PC1 scores go to: Petroleum Engineering, Metallurgical Engineering, and Naval Architecture & Marine Engineering. In contrast to the business and psychology majors, these engineering majors have student size less than 2500 per major and less than 2000 in the employeed column. This PC accounts for 47% of variance, so we can see an apparent difference between scores on the high end versus scores on the low end of the PC1 continuum.
+
+```{r}
+fc_pca$scores[,1:4] %>% as.data.frame %>% top_n(3, wt=Comp.2)
+full_college %>% filter(major%in%c("Studio Arts", "Counseling Psychology", "Library Science"))
+fc_pca$scores[,1:4] %>% as.data.frame %>% top_n(3, wt=desc(Comp.2))
+full_college %>% filter(major%in%c("Petroleum Engineering", "Metallurgical Engineering", "Nuclear Engineering"))
+```
+For PC2, we can see that Studio Arts, Counseling Psychology, and Library Science have the highest values. This PC accounts for 22% of variation and mainly looks at the relationship between income and proportion of women in the major. Looking at the three highest scoring majors in PC2, they have proportions of women above 70%; however, their rankings (which is based on average income), are near the bottom, out of 173 total majors. To further illustrate this point, the median incomes for these majors is below $30,000. On the flip side, the majors with the lowest PC2 scores are: Petroleum Engineering, Metallurgical Engineering, and Nuclear Engineering. Taking a closer look at these majors, it is obvious that their rankings are at the top of the list, there are 15% or less female students in those majors, and their median incomes are above $65,000, with Petroleum Engineering having a median income of over $100,000! 
+
+
+```{r}
+fc_df2 <-  data.frame(PC3=fc_pca$scores[, 3], PC4=fc_pca$scores[, 4])
+ggplot(fc_df2, aes(PC3, PC4)) + geom_point()
+```
+
+
+```{r}
+fc_pca$scores[,1:4] %>% as.data.frame %>% top_n(3, Comp.3)
+full_college %>% filter(major%in%c("Health And Medical Preparatory Programs", "Biology", "Zoology"))
+fc_pca$scores[,1:4] %>% as.data.frame %>% top_n(-3, Comp.3)
+full_college %>% filter(major%in%c("Electrical, Mechanical, And Precision Technologies And Production", "Business Management And Administration", "Film Video And Photographic Arts"))
+
+```
+PC3 is also an axis that looks at proportion of women, but instead of relating it to income like PC2, PC3 correlates weakly with unemployment rate and graduate school employment. The majors with the highest 3 PC3 scores (Health And Medical Preparatory Programs, Biology, and Zoology) all have relatively high female representation(over 55%), their unemployments rates are under 7%, and they have a high proportion of graduate students employed compared to the total grad students in that major. The 3 lowest PC3 scores go to: Electrical, Mechanical, And Precision Technologies And Production, Business Management & Administration, and Film Video & Photographic Arts. When looking at the raw data, these 3 majors have lower shares of women (23%, 47%, and 42%, respectively). Additionally, 2 out of these 3 have higher than 7% unemployment rates. Since this component only accounts for about 5% of the variance, though, the relationships are not as clear cut as the first 2 PCs.
+
+```{r}
+fc_pca$scores[,1:4] %>% as.data.frame %>% top_n(3, Comp.4)
+full_college %>% filter(major%in%c("Nursing", "General Education", "Elementary Education"))
+fc_pca$scores[,1:4] %>% as.data.frame %>% top_n(-3, Comp.4)
+full_college %>% filter(major%in%c("Economics", "Health And Medical Preparatory Programs", "Zoology"))
+```
+PC4 weakly inversely relates unemployment with the percent of jobs in a major that require a college degree, signifying that a lower unemployment rate can be correlated with a major which has a higher percentage of jobs that requires a college degree. The 3 majors with the highest PC4 scores are: Nursing, General Education, and Elementary Education. 2 of these majors have unemployment rates under 5% and 1 is under 6%; additionally, at least 69% of jobs in these fields require a degree, with Nursing having 83% of jobs requiring a degree. The 3 majors with the lowest PC4 scores are: Economics, Health and Medical Preparatory Programs, and Zoology. Looking at the data for these majors, the unemployment rates are 9%, 7%, and 4.6%, respectively; this is, on average, higher than the majors with a high PC4 score. Moreover, the majors with low PC4 scores lead to jobs that require a college degree less than 45% of the time; in particular, only 25% of economics graduates have jobs that require a college degree.

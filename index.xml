@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title></title>
+    <link>/</link>
+    <description>Recent content on </description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Wed, 09 Dec 2020 00:00:00 +0000</lastBuildDate><atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Test Post</title>
+      <link>/post/2020/12/09/test-post/</link>
+      <pubDate>Wed, 09 Dec 2020 00:00:00 +0000</pubDate>
+      
+      <guid>/post/2020/12/09/test-post/</guid>
+      <description>R Markdown This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see http://rmarkdown.rstudio.com.
+You can embed an R code chunk like this:
+summary(cars) ## speed dist ## Min. : 4.0 Min. : 2.00 ## 1st Qu.:12.0 1st Qu.: 26.00 ## Median :15.0 Median : 36.00 ## Mean :15.4 Mean : 42.98 ## 3rd Qu.</description>
+    </item>
+    
+    <item>
+      <title>Hello R Markdown</title>
+      <link>/post/2015/07/23/hello-r-markdown/</link>
+      <pubDate>Thu, 23 Jul 2015 21:13:14 -0500</pubDate>
+      
+      <guid>/post/2015/07/23/hello-r-markdown/</guid>
+      <description>R Markdown This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see http://rmarkdown.rstudio.com.
+You can embed an R code chunk like this:
+summary(cars) ## speed dist ## Min. : 4.0 Min. : 2.00 ## 1st Qu.:12.0 1st Qu.: 26.00 ## Median :15.0 Median : 36.00 ## Mean :15.4 Mean : 42.98 ## 3rd Qu.</description>
+    </item>
+    
+    <item>
+      <title>Project 1: Exploratory Data Analysis</title>
+      <link>/project/project1/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/project/project1/</guid>
+      <description>Tenzin Palkyi tp23423
+Data Wrangling and Data Exploration  Introduction The two datasets that I chose are the college_recent_grads and college_grad_students sets from the fivethirtyeight package in R. The college_recent_grads dataset has information on recent graduates from a total of 173 different college majors with 21 variables. Examples of some of the variables are: how many individuals were in this major; the 25th, 50th, and 75th percentile earnings; the unemployment rate; and the proportion of women who were in this major.</description>
+    </item>
+    
+    <item>
+      <title>Project 2: Modeling, Testing, and Predicting</title>
+      <link>/project/project2/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/project/project2/</guid>
+      <description>Tenzin Palkyi tp23423
+library(dplyr) library(fivethirtyeight) library(tidyverse) college_grads &amp;lt;- college_recent_grads full_college &amp;lt;- college_grads %&amp;gt;% mutate(percent_college = (college_jobs/employed) * 100) %&amp;gt;% mutate(total_quantile = ntile(total, 4)) %&amp;gt;% mutate(total_quantile = recode(total_quantile, `1` = &amp;quot;1st Quantile&amp;quot;, `2` = &amp;quot;2nd Quantile&amp;quot;, `3` = &amp;quot;3rd Quantile&amp;quot;, `4` = &amp;quot;4th Quantile&amp;quot;)) full_college &amp;lt;- full_college %&amp;gt;% mutate(big_small = ntile(total, 2)) %&amp;gt;% mutate(big_small = recode(big_small, `1` = &amp;quot;small&amp;quot;, `2` = &amp;quot;big&amp;quot;)) full_college &amp;lt;- na.omit(full_college) Introduction The dataset I am using is the college_recent_grads set from the fivethirtyeight package in R.</description>
+    </item>
+    
+    <item>
+      <title>Projects</title>
+      <link>/projects/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/projects/</guid>
+      <description> Check out some of my coding projects below:
+ Wrangling &amp;amp; Exploratory Data Analysis
+ Modeling, Inference, Prediction
+  -- </description>
+    </item>
+    
+    <item>
+      <title>Resume</title>
+      <link>/resume/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/resume/</guid>
+      <description>    </description>
+    </item>
+    
+  </channel>
+</rss>

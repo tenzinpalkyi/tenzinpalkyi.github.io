@@ -1,0 +1,279 @@
+---
+title: 'Project 2: Modeling, Testing, and Predicting'
+author: "SDS348"
+date: ''
+output:
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+  pdf_document:
+    toc: no
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = F, message = F,
+tidy=TRUE, tidy.opts=list(width.cutoff=60), R.options=list(max.print=100))
+```
+
+Tenzin Palkyi tp23423
+
+
+```{r}
+library(dplyr)
+library(fivethirtyeight)
+library(tidyverse)
+college_grads<-college_recent_grads
+full_college<-college_grads %>% mutate(percent_college= (college_jobs/employed)*100) %>% mutate(total_quantile= ntile(total,4)) %>%
+  mutate(total_quantile=recode(total_quantile,"1"="1st Quantile","2"="2nd Quantile","3"="3rd Quantile", "4"="4th Quantile")) 
+full_college<-full_college %>% mutate(big_small=ntile(total,2)) %>% mutate(big_small=recode(big_small,"1"="small", "2"="big"))
+full_college<-na.omit(full_college)
+```
+##Introduction
+The dataset I am using is the college_recent_grads set from the fivethirtyeight package in R. This has information on recent graduates from a total of 173 different college majors with 21 original variables; I had to remove 2 rows because they contained NAs though. I added 3 more variables: a "total_quantile" variable that categorizes how large the major is (1st quantile being the smallest and the 4th quantile being the largest majors), a "big_small" variable that either categorizes a major as big or small ("big" being in the 3rd or 4th quantile and "small" being in the 1st or second quantile) and a "percent_college" variable that calculates what percent of jobs in that major required a college degree; the total variables now is 24. Examples of some of the original variables are: the major category (ex: engineering, business, physical sciences); how many individuals were in this major; the 25th, 50th, and 75th percentile earnings; the unemployment rate; and the proportion of women who were in this major.
+
+## 1. MANOVA/ANOVA
+```{r}
+#MANOVA
+man1<-manova(cbind(total, sharewomen, median)~major_category, data=full_college, na.rm=T)
+summary(man1)
+
+#ANOVA and post-hoc t-tests
+summary.aov(man1)
+full_college%>%group_by(major_category)%>%summarize(mean_salary=mean(median), mean_women=mean(sharewomen))
+
+pairwise.t.test(full_college$median,full_college$major_category, p.adj="none")
+pairwise.t.test(full_college$sharewomen,full_college$major_category, p.adj="none")
+
+my_anova <- lm(median ~ major_category, data = full_college)
+library(emmeans)
+emmeans(my_anova, pairwise ~ major_category)
+my_anova1 <- lm(sharewomen ~ major_category, data = full_college)
+emmeans(my_anova1, pairwise ~ major_category)
+1- (.95^36)
+.05/36
+
+#MANOVA Assumptions
+library(rstatix)
+group <- full_college$major_category 
+DVs <- full_college %>% select(total,median,sharewomen)
+
+#Test multivariate normality for each group (null: assumption met)
+sapply(split(DVs,group), mshapiro_test)
+
+#View covariance matrices for each group
+lapply(split(DVs,group), cov)
+
+```
+For the MANOVA test, I used the major_category variable as my categorical variable; I chose "total", "sharewomen", and "median" for the numeric variable. From the MANOVA, there is a significant mean difference across the major_vategory variable, so I proceeded to do a univariate ANOVA test across the groups. After doing the ANOVA, I found that the "total" variable did not have a significant difference (p value > 0.05), but the other two variables did have significant differences. When I did the pairwise.t.test function on the two significant predictor variables, it did not show any significant differences; however, when I used the "emmeans" function, I was able to garner some results. 
+
+For the post hoc tests, the one for median salary garnered 40 significant group combinations out of a total of 120 that differed. Most majors that were paired with engineering or health resulted in a significant group difference. The post hoc test for sharewomen garnered 41 significant group combinations out of a total of 120 that differed. Similar to the median salary, engineering had the most group differences with computers & mathematics also having several significant values.
+
+In total, I performed 36 tests- 1 MANOVA, 3 ANOVA, and 32 t-tests. The probability of at least one type 1 error would be 84.2%. After doing a bonferroni correction, the new significance level was determined to be 0.001389.
+For the MANOVA assumptions, the multivariate normality assumption was violated and the multivariate covariances do not look very robust.
+
+## 2. Randomization Test
+```{r}
+summary(aov(unemployment_rate~total_quantile,data=full_college))
+
+obs_F<-2.26 
+Fs<-replicate(5000,{ 
+  new<-full_college%>%mutate(unemployment_rate=sample(unemployment_rate)) 
+  SSW<- new%>%group_by(total_quantile)%>%summarize(SSW=sum((unemployment_rate-mean(unemployment_rate))^2))%>%
+    summarize(sum(SSW))%>%pull
+  SSB<- new%>%mutate(mean=mean(unemployment_rate))%>%group_by(total_quantile)%>%mutate(groupmean=mean(unemployment_rate))%>%
+    summarize(SSB=sum((mean-groupmean)^2))%>%summarize(sum(SSB))%>%pull
+(SSB/3)/(SSW/168)
+})
+hist(Fs, prob=T); abline(v = obs_F, col="red",add=T)
+mean(Fs>obs_F)
+
+```
+For this randomization test, I wanted to do an ANOVA test on whether the "total_quantile" classification (1st, 2nd, 3rd, or 4th quantile) of a major plays any role in the post-graduation unemployment rate. The null hypothesis is that the mean unemployment rates for all the "total_quantile" classifications are equal. The alternative hypothesis would be that there is some difference in the unempployment rate based on "total_quantile". The observed F statistic was 2.26 and the p value was close to being significant (.083), but did not pass the significance threshold. The p value for the randomization test was approximately the same (.084), but it still doesn't pass the significance threshold. This means that about 8% of the 5000 F statistics generated under the null hypothesis were bigger than our actual F statistic of 2.26. In the histogram, we can see that a majority of the Fs are below the red line (which represents the observed F), but it was not significant enough.
+
+## 3. Linear Regresssion Model
+```{r}
+#Linear Regression Model with Mean-centering
+library(sandwich); library(lmtest)
+fit_i<-lm(median ~ total_quantile * percent_college, data=full_college)
+summary(fit_i)
+full_college$pc<- full_college$percent_college - mean(full_college$percent_college, na.rm=T)
+fit1_i<- lm(median ~ total_quantile * pc, data= full_college)
+summary(fit1_i)
+
+#Plotting the Regression
+ggplot(full_college, aes(percent_college, median, color = total_quantile)) + geom_smooth(method = "lm", se = F, fullrange = T)+
+geom_point()
+
+ggplot(full_college, aes(pc, median, color = total_quantile)) + geom_smooth(method = "lm", se = F, fullrange = T)+
+geom_point()
+
+
+#Checking the Assumptions of Linearity, Normality, and Homoskedasticity
+resids<-fit1_i$residuals; fitvals<-fit1_i$fitted.values
+ggplot()+geom_point(aes(fitvals,resids))+geom_hline(yintercept=0, col="red")
+bptest(fit1_i)
+
+ggplot()+geom_histogram(aes(resids),bins=20)
+ks.test(resids, "pnorm", sd=sd(resids))
+
+#Using Robust Standard Errors
+summary(fit1_i)$coef[,1:2]
+coeftest(fit1_i, vcov = vcovHC(fit1_i))[,1:2]
+
+#Proportion of Variation That the Model Explains
+summary(fit1_i)
+```
+ The linear regression model that I ran predicts median salary from the interaction of the "total_quantile" and "percent_college" variables. For the mean-centered regression, the intercept estimate is 44827 which signifies that the average median salary for 1st quantile majors with the average amount of jobs requiring a college degree is $44,827. 2nd quantile majors with average percent_college values have a predicted median salary that is $6330 lower than the 1st quantile majors with average percent_college values (significant difference). 3rd quantile majors with average percent_college values have a predicted median salary that is $8136 lower than the 1st quantile majors (significant difference). 4th quantile majors with average percent_college values have a predicted median salary that is $5604 lower than the 1st quantile majors (significant difference). Mean-centered percent_college is significantly associated wihh total_quantile classication for 1st quantile- for every 1% increase in percent_college from the average, the median salary increases by $307.73. Slope of percent_college on median salary for 2nd quantile is $266.07 less than for 1st quantile majors. Slope of precent_college on median salary for 3rd quantile is $253.76 less than for 1st quantile majors. Finally, slope of percent_college on median salary for 4th quantile if $119.85 less than for 1st quantile majors.
+
+With regards to the regression assumptions:
+-linearity assumption does not seem to be met because there is not equal variance throughout the scatter plot
+-homoskedasticity assumption is not met because the Breusch-Pagan test p-value is 0.0017, which disproves the null hypothesis that the data is homoskedastic 
+-normality assumption is followed because the Kolmogorov-Smirnov test had a non-significant value, which signifies that the null hypothesis that the distribution is normal is confirmed
+
+Tha main change from the original to robust standard errors was an overall increase in all of the standard error values, with the biggest increase in the inctercept from ~1686 to ~2001.
+
+The multiple R-squared value is .219. The adjusted R-squared value is .1855, which signifies that 18.55% of the variation in median salary can be explained by total_quantile and percent_college, with a penalty for each additional explanatory variable.
+
+
+## 4. Linear Regression Model with Bootstrapping
+```{r}
+samp_distn<-replicate(5000, {
+  boot_dat <- sample_frac(full_college, replace=T)
+  fit1_i <- lm(median~ total_quantile * pc, data=boot_dat) 
+  coef(fit1_i)
+})
+samp_distn %>% t %>% as.data.frame %>% summarize_all(sd)
+
+```
+For the boostrapped SEs, I chose to resample the observations. Compared to the original SEs, there was an overall increase, with the largest increase in the intercept SE, from ~1686 to ~1996. In relation to the robust SEs, there was a slight decrease in all the values. 
+
+
+## 5. Logistic Regression Model Predicting a Binary Variable
+```{r}
+#Creating a Binary Categorical Variable
+full_college<-full_college %>% mutate(sharewomen1= (sharewomen)*100) %>% mutate(unemployment_rate1= (unemployment_rate)*100)
+data<-full_college%>%mutate(large=ifelse(big_small=="big",1,0))
+fit<-glm(large~ sharewomen1 + unemployment_rate1, data=data, family=binomial(link="logit"))
+coeftest(fit)
+exp(coef(fit))
+
+#Confusion Matrix
+prob<-predict(fit, type="response")
+pred<-ifelse(prob>.5,1,0)
+table(prediction=pred, truth=data$large) %>% addmargins
+
+#Accuracy
+(47+61)/171
+#Sensitivity (TPR)
+47/72
+#Specificity (TNR)
+61/99
+#Precision
+47/85
+
+#Density Plot
+data$logit<-predict(fit,type="link")
+data%>%ggplot()+geom_density(aes(logit,color=big_small,fill=big_small), alpha=.4)+
+  theme(legend.position=c(.85,.85))+geom_vline(xintercept=0)+xlab("logit (log-odds)")+
+  geom_rug(aes(logit,color=big_small))
+
+#ROC Curve and AUC
+library(plotROC) 
+ROCplot<-ggplot(data)+geom_roc(aes(d=large,m= prob), n.cuts=0)
+ROCplot
+
+calc_auc(ROCplot)
+```
+For this logistic regression model, the binary variable I want to predict is whether a major is large or not (using the big_small categorical variable I created). The 2 explanatory variables are sharewomen and unemployment rate. Before running the model, I mutated the sharewomen and unemployment_rate variables by multiplying them each by 100 so that instead of a decimal, it represents the percent value. Proportion of women (sharewomen) in a particular major has a significant effect on increasing log-odds of being a large major, making it more likley. On the other hand, unemployment rate does not have a significant effect. After exponentiating the coefficients, every one percent increase in sharewomen multiplies odds by 1.02. This increases odds by 2% for every one percent increase in sharewomen.
+
+After constructing a confusion matrix, the Accuracy, Sensitivity, Specificity, Precision and AUC of the model are listed below:
+-Accuracy: 63.16% -- this is the proportion of correctly classified majors
+-Sensitivity (TPR): 65.28% -- this is the proportion of large majors correctly classified
+-Specificity (TNR): 61.62% -- this is the proportion of small majors correctly classified
+-Precision (PPV): 55.3% -- this is the proportion of classified large majors that actually are large majors
+-AUC: 0.651 -- this AUC is poor, which signifies that it is difficult to predict a major's size from proportion of women and unemployment rate
+
+
+## 6. Logistic Regression Predicting the Same Binary Response Variable from ALL of the Rest of the Variables
+```{r}
+#Fitting model and In-Sample Classification Diagnostics
+fit2<-glm(large~ median + percent_college + employed, data=data, family="binomial")
+coeftest(fit2)
+probs <- predict(fit2,type="response") 
+
+class_diag <- function(probs,truth){
+  tab<-table(factor(probs>.5,levels=c("FALSE","TRUE")),truth)
+  acc=sum(diag(tab))/sum(tab)
+  sens=tab[2,2]/colSums(tab)[2]
+  spec=tab[1,1]/colSums(tab)[1]
+  ppv=tab[2,2]/rowSums(tab)[2]
+  f1=2*(sens*ppv)/(sens+ppv)
+  if(is.numeric(truth)==FALSE & is.logical(truth)==FALSE)
+  truth<-as.numeric(truth)-1
+
+  ord<-order(probs, decreasing=TRUE)
+  probs <- probs[ord]; truth <- truth[ord]
+  TPR=cumsum(truth)/max(1,sum(truth))
+  FPR=cumsum(!truth)/max(1,sum(!truth))
+  dup<-c(probs[-1]>=probs[-length(probs)], FALSE)
+  TPR<-c(0,TPR[!dup],1); FPR<-c(0,FPR[!dup],1)
+  n <- length(TPR)
+  auc<- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+  data.frame(acc,sens,spec,ppv,f1,auc) 
+}
+
+class_diag(probs,data$large)
+library(pROC)
+auc(data$large,probs)
+
+#10-Fold CV
+set.seed(1234)
+k=10
+data1<-data[sample(nrow(data)),]
+folds<-cut(seq(1:nrow(data)),breaks=k,labels=F)
+diags<-NULL
+for(i in 1:k){
+  train<-data1[folds!=i,]
+  test<-data1[folds==i,]
+  truth<-test$large 
+  fit2<-glm(large~ median + percent_college + employed, data=train,family="binomial")
+  probs<-predict(fit2,newdata = test,type="response")
+  diags<-rbind(diags,class_diag(probs,truth))
+}
+summarize_all(diags,mean)
+
+#LASSO
+library(glmnet)
+y<-as.matrix(data$large)
+x<-model.matrix(large~ median + percent_college + employed, data=data)[,-1]
+x<-scale(x)
+cv <- cv.glmnet(x,y, family="binomial")
+lasso<-glmnet(x,y,family="binomial",lambda=cv$lambda.1se)
+coef(lasso)
+
+#10-Fold CV on LASSO Model
+set.seed(1234)
+k=10
+data1 <- data %>% sample_frac 
+folds <- ntile(1:nrow(data1),n=10)
+diags<-NULL
+for(i in 1:k){
+  train <- data1[folds!=i,]
+  test <- data[folds==i,] 
+  truth <- test$large
+  fit3 <- glm(large~ median + percent_college + employed, data=train,
+    family="binomial")
+  probs <- predict(fit3, newdata=test, type="response")
+  diags<-rbind(diags,class_diag(probs,truth))
+}
+diags%>%summarize_all(mean)
+```
+When I ran this additional logistic regression predicting the size of a major (large or small), the new predictor variables I included were the median salary, the percent_college, and the number of people employed. The in-sample classification diagnostics were much better for this model, and I suspect it is because of the inclusion of the "employed" variable, since the number of people employed with that major would correlate well with the size of the major. The accuracy increased from ~63% to 95.9%, the sensitivity increased from ~65% to 96.5%, the specificity increased from ~61% to 95.3%, the precision increased from ~55% to 95.4%, and the AUC increased from .651 to .997. This new logistic regression is much more accurate with predicting if a major is large or small than the one in part 5.
+
+After doing a 10-fold CV with the same model, the classification diagnostics did not change drastically. The accuracy remained the same at ~95.9%, the sensitivity stayed about the same at ~96.5%, the specificity decreased slightly from 95.3% to 94.%, the precision increased slightly from 95.4% to 96.2%, and the AUC decreased slightly from .997 to .993. Becaus the AUC didn't change too much even with the 10-fold CV, it means that the performance is still stable even out-of-sample.
+
+
+After performing a LASSO on this model, all three of the variables (median salary, percent_college, and total individuals employed) were retained. After doing a 10-fold CV on the LASSO model, the AUC value did increase from .993 to .994. 
+
